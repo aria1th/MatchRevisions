@@ -51,9 +51,6 @@ public class ClientPlayNetworkHandlerMixin {
 				}
 				//player.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
 				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
-				if (player.currentScreenHandler instanceof CreativeInventoryScreen.CreativeScreenHandler){
-					return;
-				}
 				if (packet.getSlot() == -1){
 					//okay wtf? server is actually trying to disconnect client.
 					if (packet.getSyncId() == -1 && !(this.client.currentScreen instanceof CreativeInventoryScreen)) {
@@ -64,7 +61,13 @@ public class ClientPlayNetworkHandlerMixin {
 					}
 					return;
 				}
-				this.client.execute(()->player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack()));
+				this.client.execute(()-> {
+					if (this.client.currentScreen instanceof CreativeInventoryScreen) {
+						player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+					} else {
+						player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+					}
+				});
 			}
 		}
 	}
