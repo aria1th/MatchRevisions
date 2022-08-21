@@ -5,6 +5,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.packet.s2c.play.DisconnectS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,6 +38,10 @@ public class ClientPlayNetworkHandlerMixin {
 		}
 		if (player != null){
 			int rev = player.currentScreenHandler.getRevision();
+			if (packet.getSlot() == -1){
+				player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				return;
+			}
 			if (shouldCancel(rev, packet.getRevision())) {
 				//player.sendMessage(Text.of("Canceled rev : "+ packet.getRevision() + " current : "+ rev));
 				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
@@ -47,7 +52,7 @@ public class ClientPlayNetworkHandlerMixin {
 				}
 				//player.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
 				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
-				player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+				this.client.execute(()->player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack()));
 			}
 		}
 	}
@@ -63,6 +68,6 @@ public class ClientPlayNetworkHandlerMixin {
 		}
 		int abs = Math.abs(current - packet);
 		if (abs > 1024 && abs < 32760) return false;
-		return Math.abs(current - packet) > 32760 ? current < packet : current > packet;
+		return Math.abs(current - packet) > 32760 ? current <= packet : current >= packet;
 	}
 }
