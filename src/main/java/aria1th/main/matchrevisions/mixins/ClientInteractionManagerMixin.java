@@ -23,7 +23,7 @@ public class ClientInteractionManagerMixin {
 	@Final
 	private MinecraftClient client;
 
-	@Inject(method = "clickSlot", at = @At("TAIL"), require = 1)
+	@Inject(method = "clickSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendPacket(Lnet/minecraft/network/Packet;)V"), require = 1)
 	private void getNextRevision(int syncId, int slotId, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
 		player.currentScreenHandler.nextRevision();
 	}
@@ -36,7 +36,6 @@ public class ClientInteractionManagerMixin {
 				player.currentScreenHandler.nextRevision();
 				player.currentScreenHandler.setStackInSlot(slotId, player.currentScreenHandler.getRevision(), stack);
 			}
-
 		}
 	}
 }
