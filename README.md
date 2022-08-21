@@ -31,4 +31,12 @@ Also, Villagers... might have sync with server, because client does not process 
 
 But in normal conditions, you'll get less or no desyncs with this mod... at least, this can help EasyPlace or Item Scroller.
 
+# How to build instead of suspiscious jar?
 
+Download code zip then run `gradlew build`.
+
+If you need another versions, then change `gradle.properties` - fabric loader and minecraft version.
+
+# Issue tracker
+
+This mod is in just preview, but it just works for some cases... 
