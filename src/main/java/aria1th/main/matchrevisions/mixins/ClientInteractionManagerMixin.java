@@ -3,6 +3,7 @@ package aria1th.main.matchrevisions.mixins;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -32,8 +33,9 @@ public class ClientInteractionManagerMixin {
 	private void getNextRevision(ItemStack stack, int slotId, CallbackInfo ci) {
 		final ClientPlayerEntity player = this.client.player;
 		if (player != null) {
-			if (!player.getInventory().getStack(slotId).equals(stack)){
+			if (!(player.currentScreenHandler instanceof CreativeInventoryScreen.CreativeScreenHandler) && !player.getInventory().getStack(slotId).equals(stack)){
 				player.currentScreenHandler.nextRevision();
+				//player.sendMessage(Text.of("Slot was "+ slotId+ " stack was " +stack));
 				player.currentScreenHandler.setStackInSlot(slotId, player.currentScreenHandler.getRevision(), stack);
 			}
 		}

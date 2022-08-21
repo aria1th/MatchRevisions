@@ -1,6 +1,9 @@
 package aria1th.main.matchrevisions.mixins;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
+import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.packet.s2c.play.DisconnectS2CPacket;
@@ -39,10 +42,11 @@ public class ClientPlayNetworkHandlerMixin {
 		if (player != null){
 			int rev = player.currentScreenHandler.getRevision();
 			if (packet.getSlot() == -1){
-				player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				//okay wtf? server is actually trying to disconnect client.
+				player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId :" + packet.getSyncId()));
 				return;
 			}
-			if (shouldCancel(rev, packet.getRevision())) {
+			if (!isSyncScreen(this.client.currentScreen) && shouldCancel(rev, packet.getRevision())) {
 				//player.sendMessage(Text.of("Canceled rev : "+ packet.getRevision() + " current : "+ rev));
 				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 				ci.cancel();
@@ -52,6 +56,9 @@ public class ClientPlayNetworkHandlerMixin {
 				}
 				//player.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
 				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				if (player.currentScreenHandler instanceof CreativeInventoryScreen.CreativeScreenHandler){
+					return;
+				}
 				this.client.execute(()->player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack()));
 			}
 		}
@@ -60,7 +67,12 @@ public class ClientPlayNetworkHandlerMixin {
 	private void handleDisconnect(DisconnectS2CPacket packet, CallbackInfo ci){
 		isSynced = false;
 	}
-	
+	private static boolean isSyncScreen(Screen screen){
+		if (screen instanceof MerchantScreen){
+			return true;
+		}
+		return false;
+	}
 
 	private static boolean shouldCancel(int current, int packet) {
 		if (current == packet){
