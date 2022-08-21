@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "matchrevisions",
+  "version": "1.0.0",
+
+  "name": "DesyncPreventer",
+  "description": "Matches revision with server to prevent inventory desync",
+  "authors": [
+    "AngelBottomless"
+  ],
+  "contact": {
+    "homepage": "https://github.com/aria1th/MatchRevisions/",
+    "sources": "https://github.com/aria1th/MatchRevisions/"
+  },
+
+  "license": "",
+  "icon": "assets/MatchRevisions/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+	"init"
+    ]
+  },
+  "mixins": [
+    "matchrevisions.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.3",
+    "minecraft": "1.19.x",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
