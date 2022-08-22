@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static aria1th.main.matchrevisions.utils.VariableHolder.interactBlock;
+
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerInteractionManager.class)
@@ -59,8 +61,8 @@ public class ClientInteractionManagerMixin {
 
 	@Inject(method = "interactBlockInternal", at = @At(value = "RETURN"))
 	private void onReturnActionResult(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir){
-		if (player.getStackInHand(hand).getCount() != countedValue){
-			//player.currentScreenHandler.nextRevision();
+		if (player.getStackInHand(hand).getCount() != countedValue && interactBlock){
+			player.currentScreenHandler.nextRevision();
 		}
 	}
 }
