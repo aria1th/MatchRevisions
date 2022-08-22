@@ -60,7 +60,7 @@ public class ClientInteractionManagerMixin {
 	@Inject(method = "interactBlockInternal", at = @At(value = "RETURN"))
 	private void onReturnActionResult(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir){
 		if (player.getStackInHand(hand).getCount() != countedValue){
-			player.currentScreenHandler.nextRevision();
+			//player.currentScreenHandler.nextRevision();
 		}
 	}
 }
