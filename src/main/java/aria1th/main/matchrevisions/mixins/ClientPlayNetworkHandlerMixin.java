@@ -98,7 +98,7 @@ public class ClientPlayNetworkHandlerMixin {
 
 	private static boolean shouldCancel(int current, int packet) {
 		if (current == packet){
-			return false;
+			return true;
 		}
 		int abs = Math.abs(current - packet);
 		if (abs > 1024 && abs < 32760) return false;
