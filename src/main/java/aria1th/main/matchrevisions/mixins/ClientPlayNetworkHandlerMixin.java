@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.network.packet.s2c.play.DisconnectS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.text.Text;
@@ -75,16 +76,17 @@ public class ClientPlayNetworkHandlerMixin {
 	private void handleDisconnect(DisconnectS2CPacket packet, CallbackInfo ci){
 		isSynced = false;
 	}
+	@Inject(method = "onCloseScreen", at = @At("HEAD"))
+	private void handleDisconnect(CloseScreenS2CPacket packet, CallbackInfo ci){
+		isSynced = false;
+	}
 	private static boolean isSyncScreen(Screen screen){
-		if (screen instanceof MerchantScreen){
-			return true;
-		}
-		return false;
+		return screen instanceof MerchantScreen;
 	}
 
 	private static boolean shouldCancel(int current, int packet) {
 		if (current == packet){
-			return false;
+			return true;
 		}
 		int abs = Math.abs(current - packet);
 		if (abs > 1024 && abs < 32760) return false;
