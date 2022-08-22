@@ -5,7 +5,7 @@ import net.minecraft.text.Text;
 
 public class MessageHolder {
 	final ClientPlayerEntity player;
-	public boolean allow = true;
+	public boolean allow = false;
 	public boolean useActionbar = false;
 	public MessageHolder(ClientPlayerEntity player){
 		this.player = player;

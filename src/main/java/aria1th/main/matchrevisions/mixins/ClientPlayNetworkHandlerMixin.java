@@ -107,7 +107,7 @@ public class ClientPlayNetworkHandlerMixin {
 
 	private static void syncIfThreshold(){
 		long time = new Date().getTime();
-		if (lastSynced + 300L < time){
+		if (lastSynced + 4000L < time){
 			isSynced = false;
 			lastSynced = time;
 		}
