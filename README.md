@@ -49,3 +49,7 @@ If you need another versions, then change `gradle.properties` - fabric loader an
 # Issue tracker
 
 This mod is in just preview, but it just works for some cases... 
+
+# Known issues
+
+If you swap slot twice then interact, it will desync... will be fixed soon.
