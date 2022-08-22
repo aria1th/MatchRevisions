@@ -1,8 +1,10 @@
 package aria1th.main.matchrevisions.mixins;
 
+import aria1th.main.matchrevisions.utils.MessageHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -32,26 +34,27 @@ public class ClientPlayNetworkHandlerMixin {
 	@Inject(method = "onScreenHandlerSlotUpdate", at = @At("HEAD"), cancellable = true)
 	private void onUpdateSlots(ScreenHandlerSlotUpdateS2CPacket packet, CallbackInfo ci) {
 		final ClientPlayerEntity player = this.client.player;
+		final MessageHolder messageHolder = new MessageHolder(player);
 		if (!isSynced && player != null){
 			isSynced = true;
 			while (packet.getRevision() != player.currentScreenHandler.getRevision()) {
 				player.currentScreenHandler.nextRevision();
 			}
-			//player.sendMessage(Text.of("Matched rev on start : "+ packet.getRevision()));
+			messageHolder.sendMessage("Matched rev on start : "+ packet.getRevision());
 			return;
 		}
 		if (player != null){
 			int rev = player.currentScreenHandler.getRevision();
 			if (!isSyncScreen(this.client.currentScreen) && shouldCancel(rev, packet.getRevision())) {
-				//player.sendMessage(Text.of("Canceled rev : "+ packet.getRevision() + " current : "+ rev));
-				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				messageHolder.sendMessage(Text.of("Canceled rev : "+ packet.getRevision() + " current : "+ rev));
+				messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 				ci.cancel();
 			} else {
 				while (packet.getRevision() != player.currentScreenHandler.getRevision()) {
 					player.currentScreenHandler.nextRevision();
 				}
-				//player.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
-				//player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				messageHolder.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
+				messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 				if (packet.getSlot() == -1){
 					//okay wtf? server is actually trying to disconnect client.
 					if (packet.getSyncId() == -1 && !(this.client.currentScreen instanceof CreativeInventoryScreen)) {
@@ -78,6 +81,10 @@ public class ClientPlayNetworkHandlerMixin {
 	}
 	@Inject(method = "onCloseScreen", at = @At("HEAD"))
 	private void handleDisconnect(CloseScreenS2CPacket packet, CallbackInfo ci){
+		Screen screen = this.client.currentScreen;
+		if (screen instanceof InventoryScreen){
+			return;
+		}
 		isSynced = false;
 	}
 	private static boolean isSyncScreen(Screen screen){
