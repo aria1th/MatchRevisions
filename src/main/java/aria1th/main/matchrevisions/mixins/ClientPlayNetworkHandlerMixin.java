@@ -98,15 +98,21 @@ public abstract class ClientPlayNetworkHandlerMixin {
 			}
 			messageHolder.sendMessage("Matched rev on start : "+ packet.getRevision());
 			messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
-			this.client.execute(()-> {
-				if (this.client.currentScreen instanceof CreativeInventoryScreen) {
-					player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-				} else {
-					player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-				}
-			});
-			ci.cancel();
-			return;
+			int syncId = packet.getSyncId();
+			if (syncId == player.currentScreenHandler.syncId){
+				this.client.execute(()-> {
+					if (this.client.currentScreen instanceof CreativeInventoryScreen) {
+						player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+					} else {
+						player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+					}
+				});
+				ci.cancel();
+				return;
+			}
+			else {
+				return;
+			}
 		}
 		if (player != null){
 			int rev = player.currentScreenHandler.getRevision();
@@ -130,7 +136,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
 					return;
 				}
 				this.client.execute(()-> {
-					if (this.client.currentScreen instanceof CreativeInventoryScreen) {
+					if (packet.getSyncId() != player.currentScreenHandler.syncId){
+						return;
+					}
+					if (this.client.currentScreen instanceof CreativeInventoryScreen ) {
 						player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
 					} else {
 						player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
