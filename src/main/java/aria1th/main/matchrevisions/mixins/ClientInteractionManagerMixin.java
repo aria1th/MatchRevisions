@@ -27,6 +27,14 @@ public class ClientInteractionManagerMixin {
 	@Final
 	private MinecraftClient client;
 
+	/* * *
+		ServerPlayerEntity.screenHandlerSyncHandler uses updateSlot and maybe updateCursorStack methods
+		It registers itself in screen, when checkSlotUpdates -> updateSlot
+		checkSlotUpdates is called in sendContentUpdates
+		Its called when onContentChanged (Block entities), or ServerPlayNetworkHandler.onClickSlot
+		So actually we're sending all actions... but somehow sometimes it does not update revision in server side?
+		Well at least we can accept SAME revisions.
+	* * */
 	private static int countedValue = -1;
 	@Inject(method = "clickSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendPacket(Lnet/minecraft/network/Packet;)V"), require = 1)
 	private void getNextRevision(int syncId, int slotId, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {

@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Date;
+
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 	@Shadow
@@ -26,6 +28,7 @@ public class ClientPlayNetworkHandlerMixin {
 	private MinecraftClient client;
 
 	private static boolean isSynced = false;
+	private static long lastSynced = 0L;
 	/*
 		SyncHandler defined at ServerPlayerEntity is responsible to sync, but actually client process actions and executes too. so Server sync does not match with client, which causes desync.
 		We can see ghost items in this context, especially with high ping. But, if there's no packet loss, whatever client has executed will be done in order correctly, like click recipe -> press Q in result slot even if its empty.
@@ -33,6 +36,7 @@ public class ClientPlayNetworkHandlerMixin {
 	*/
 	@Inject(method = "onScreenHandlerSlotUpdate", at = @At("HEAD"), cancellable = true)
 	private void onUpdateSlots(ScreenHandlerSlotUpdateS2CPacket packet, CallbackInfo ci) {
+		syncIfThreshold();
 		final ClientPlayerEntity player = this.client.player;
 		final MessageHolder messageHolder = new MessageHolder(player);
 		if (!isSynced && player != null){
@@ -41,6 +45,7 @@ public class ClientPlayNetworkHandlerMixin {
 				player.currentScreenHandler.nextRevision();
 			}
 			messageHolder.sendMessage("Matched rev on start : "+ packet.getRevision());
+			messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 			return;
 		}
 		if (player != null){
@@ -93,10 +98,18 @@ public class ClientPlayNetworkHandlerMixin {
 
 	private static boolean shouldCancel(int current, int packet) {
 		if (current == packet){
-			return true;
+			return false;
 		}
 		int abs = Math.abs(current - packet);
 		if (abs > 1024 && abs < 32760) return false;
 		return Math.abs(current - packet) > 32760 ? current <= packet : current >= packet;
+	}
+
+	private static void syncIfThreshold(){
+		long time = new Date().getTime();
+		if (lastSynced + 300L < time){
+			isSynced = false;
+			lastSynced = time;
+		}
 	}
 }
