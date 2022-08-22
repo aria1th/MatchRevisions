@@ -52,4 +52,3 @@ This mod is in just preview, but it just works for some cases...
 
 # Known issues
 
-If you swap slot twice then interact, it will desync... will be fixed soon.
