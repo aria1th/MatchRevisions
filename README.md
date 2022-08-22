@@ -52,4 +52,4 @@ This mod is in just preview, but it just works for some cases...
 
 # Known issues
 
-Swap key does not use interactionManager, how...?
+
