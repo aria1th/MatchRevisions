@@ -1,6 +1,15 @@
 # MatchRevisions
 **Prevents client-server desync problems**
 
+# What is Revisions?
+
+It is internal number that screen uses to check if it should send all the contents or not.
+
+1.17 changes made server send everything, yes, even if client has processed it. It caused a lot of desync problems.. but simply it could be prevented by using and matching 'revisions'.
+
+But this mod is in development - it only handles certain types of actions. In some weird modded server, like if you're prevented to interact some inventory as if you're in spectator, it could cause desync again.
+
+
 # How? and When?
 If you swaps item too fast or, you have bad ping, server's response will rubberband you.
 
