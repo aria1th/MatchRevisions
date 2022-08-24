@@ -60,6 +60,12 @@ public abstract class ClientPlayNetworkHandlerMixin {
 			if (player != null){player.sendMessage(Text.of("[matchrevision] Debug status : " + MessageHolder.allow));}
 			return 1;
 		}));
+		commandBuilder.then(literal("debugAll").executes(context -> {
+			VariableHolder.debugAll = !VariableHolder.debugAll;
+			PlayerEntity player = MinecraftClient.getInstance().player;
+			if (player != null){player.sendMessage(Text.of("[matchrevision] Debug All packets status : " + VariableHolder.debugAll));}
+			return 1;
+		}));
 		commandBuilder.then(literal("debug").then(literal("actionBar").executes(context -> {
 			MessageHolder.useActionbar = !MessageHolder.useActionbar;
 			PlayerEntity player = MinecraftClient.getInstance().player;
@@ -90,6 +96,9 @@ public abstract class ClientPlayNetworkHandlerMixin {
 		}
 		syncIfThreshold();
 		final ClientPlayerEntity player = this.client.player;
+		if (VariableHolder.debugAll){
+			player.sendMessage(Text.of("[DebugAll]Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId()));
+		}
 		final MessageHolder messageHolder = new MessageHolder(player);
 		if (!isSynced && player != null){
 			isSynced = true;
@@ -121,9 +130,15 @@ public abstract class ClientPlayNetworkHandlerMixin {
 				}
 				messageHolder.sendMessage(Text.of("Matched rev : "+ packet.getRevision() + " current : "+ rev));
 				messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
+				if (packet.getSyncId() == -2){
+					player.getInventory().setStack(packet.getSlot(), packet.getItemStack());
+					ci.cancel();
+					return;
+				}
 				if (packet.getSlot() == -1){
 					if (packet.getSyncId() == -1 && !(this.client.currentScreen instanceof CreativeInventoryScreen)) {
 						player.currentScreenHandler.setCursorStack(packet.getItemStack());
+						ci.cancel();
 					}
 					else {
 						player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId()));
@@ -131,6 +146,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 					return;
 				}
 				if (packet.getSyncId() != player.currentScreenHandler.syncId){
+					player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId() + " but current syncId is "+ player.currentScreenHandler.syncId));
 					return;
 				}
 				if (this.client.currentScreen instanceof CreativeInventoryScreen) {
@@ -138,6 +154,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 				} else {
 					player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
 				}
+				ci.cancel();
 			}
 		}
 	}
