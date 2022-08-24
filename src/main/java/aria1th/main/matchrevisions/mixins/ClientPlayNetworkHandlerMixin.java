@@ -84,8 +84,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
 		register((CommandDispatcher<ServerCommandSource>) (Object) this.commandDispatcher);
 	}
 	@Inject(method = "onScreenHandlerSlotUpdate", at = @At("HEAD"), cancellable = true)
-	private void onUpdateSlots(ScreenHandlerSlotUpdateS2CPacket packet, CallbackInfo ci) {
-		if (!allow){
+	synchronized private void onUpdateSlots(ScreenHandlerSlotUpdateS2CPacket packet, CallbackInfo ci) {
+		if (!allow || !this.client.isOnThread()){
 			return;
 		}
 		syncIfThreshold();
@@ -100,19 +100,14 @@ public abstract class ClientPlayNetworkHandlerMixin {
 			messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 			int syncId = packet.getSyncId();
 			if (syncId == player.currentScreenHandler.syncId){
-				this.client.execute(()-> {
-					if (this.client.currentScreen instanceof CreativeInventoryScreen) {
-						player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-					} else {
-						player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-					}
-				});
+				if (this.client.currentScreen instanceof CreativeInventoryScreen) {
+					player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+				} else {
+					player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+				}
 				ci.cancel();
-				return;
 			}
-			else {
-				return;
-			}
+			return;
 		}
 		if (player != null){
 			int rev = player.currentScreenHandler.getRevision();
@@ -128,23 +123,21 @@ public abstract class ClientPlayNetworkHandlerMixin {
 				messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack()));
 				if (packet.getSlot() == -1){
 					if (packet.getSyncId() == -1 && !(this.client.currentScreen instanceof CreativeInventoryScreen)) {
-						this.client.execute(()->player.currentScreenHandler.setCursorStack(packet.getItemStack()));
+						player.currentScreenHandler.setCursorStack(packet.getItemStack());
 					}
 					else {
 						player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId()));
 					}
 					return;
 				}
-				this.client.execute(()-> {
-					if (packet.getSyncId() != player.currentScreenHandler.syncId){
-						return;
-					}
-					if (this.client.currentScreen instanceof CreativeInventoryScreen ) {
-						player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-					} else {
-						player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
-					}
-				});
+				if (packet.getSyncId() != player.currentScreenHandler.syncId){
+					return;
+				}
+				if (this.client.currentScreen instanceof CreativeInventoryScreen) {
+					player.playerScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+				} else {
+					player.currentScreenHandler.setStackInSlot(packet.getSlot(), packet.getRevision(), packet.getItemStack());
+				}
 			}
 		}
 	}
