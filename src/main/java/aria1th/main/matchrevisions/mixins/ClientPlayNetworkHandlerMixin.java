@@ -29,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Date;
 
 import static aria1th.main.matchrevisions.utils.VariableHolder.allow;
+import static aria1th.main.matchrevisions.utils.VariableHolder.isSynced;
 import static net.minecraft.server.command.CommandManager.literal;
 
 @Mixin(ClientPlayNetworkHandler.class)
@@ -38,7 +39,6 @@ public abstract class ClientPlayNetworkHandlerMixin {
 	private MinecraftClient client;
 
 	@Shadow private CommandDispatcher<CommandSource> commandDispatcher;
-	private static boolean isSynced = false;
 	private static long lastSynced = 0L;
 
 	private static void register(CommandDispatcher<ServerCommandSource> dispatcher){
@@ -78,6 +78,12 @@ public abstract class ClientPlayNetworkHandlerMixin {
 			if (player != null){player.sendMessage(Text.of("[matchrevision] interactBlockPatch status : " + VariableHolder.interactBlock));}
 			return 1;
 		}));
+		commandBuilder.then(literal("toggleInteractBlockFeature").then(literal("syncAgainWhenEmpty").executes(context -> {
+			VariableHolder.shouldSyncAgain = !VariableHolder.shouldSyncAgain;
+			PlayerEntity player = MinecraftClient.getInstance().player;
+			if (player != null){player.sendMessage(Text.of("[matchrevision] interactBlockPatch - (sync again when stack is empty) status : " + VariableHolder.shouldSyncAgain));}
+			return 1;
+		})));
 		dispatcher.register(commandBuilder);
 	}
 	/*
@@ -146,7 +152,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
 					return;
 				}
 				if (packet.getSyncId() != player.currentScreenHandler.syncId){
-					player.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId() + " but current syncId is "+ player.currentScreenHandler.syncId));
+					messageHolder.sendMessage(Text.of("Slot was "+ packet.getSlot()+ " stack was " +packet.getItemStack() + " syncId was "+ packet.getSyncId() + " but current syncId is "+ player.currentScreenHandler.syncId));
+					ci.cancel();
 					return;
 				}
 				if (this.client.currentScreen instanceof CreativeInventoryScreen) {
